@@ -1,12 +1,15 @@
 package gogl
 
 import "log"
-import "fmt"
 import "bytes"
 import "net/http"
 import "encoding/json"
 
-const GOOGLE_BASE_URL string = "https://www.googleapis.com/urlshortener/v1"
+const GOOGL_SHORTEN_URL string = "https://www.googleapis.com/urlshortener/v1/url"
+
+type ShortenRequest struct {
+  LongUrl string `json:"longUrl"`
+}
 
 type GooglResponse struct {
   Kind string
@@ -14,21 +17,19 @@ type GooglResponse struct {
   LongUrl string
 }
 
-func shorten(longUrl string) GooglResponse {
-  json := fmt.Sprintf("{\"longUrl\":\"%s\"}", longUrl)
-  url  := fmt.Sprintf("%s/%s", GOOGLE_BASE_URL, "url")
+func shorten(url string) GooglResponse {
+  jsonStruct := &ShortenRequest{LongUrl: url}
+  jsonBytes, err := json.Marshal(jsonStruct)
 
-  buf := bytes.NewBufferString(json)
-  res, err := http.Post(url, "application/json", buf)
+  log.Printf("Shortening request: %s\n", string(jsonBytes))
+
+  buf := bytes.NewBuffer(jsonBytes)
+  res, err := http.Post(GOOGL_SHORTEN_URL, "application/json", buf)
   if err != nil {
     log.Fatal(err)
   }
 
   return decode(res)
-}
-
-func client() http.Client {
-  return http.Client{}
 }
 
 func decode(res *http.Response) GooglResponse {
