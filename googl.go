@@ -1,11 +1,13 @@
 package gogl
 
-import "fmt"
-import "log"
-import "bytes"
-import "net/url"
-import "net/http"
-import "encoding/json"
+import (
+  "fmt"
+  "log"
+  "bytes"
+  "net/url"
+  "net/http"
+  "encoding/json"
+)
 
 const (
   GooglShortenUrl = "https://www.googleapis.com/urlshortener/v1/url"
