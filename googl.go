@@ -1,11 +1,15 @@
 package gogl
 
+import "fmt"
 import "log"
 import "bytes"
 import "net/http"
 import "encoding/json"
 
-const GOOGL_SHORTEN_URL string = "https://www.googleapis.com/urlshortener/v1/url"
+const (
+  GooglShortenUrl = "https://www.googleapis.com/urlshortener/v1/url"
+  GooglExpandUrl  = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=%s"
+)
 
 type ShortenRequest struct {
   LongUrl string `json:"longUrl"`
@@ -15,24 +19,34 @@ type GooglResponse struct {
   Kind string
   Id string
   LongUrl string
+  Status string
 }
 
-func shorten(url string) GooglResponse {
-  jsonStruct := &ShortenRequest{LongUrl: url}
+func Shorten(longUrl string) GooglResponse {
+  jsonStruct := &ShortenRequest{LongUrl: longUrl}
   jsonBytes, err := json.Marshal(jsonStruct)
 
-  log.Printf("Shortening request: %s\n", string(jsonBytes))
-
   buf := bytes.NewBuffer(jsonBytes)
-  res, err := http.Post(GOOGL_SHORTEN_URL, "application/json", buf)
+  res, err := http.Post(GooglShortenUrl, "application/json", buf)
   if err != nil {
     log.Fatal(err)
   }
 
-  return decode(res)
+  return DecodeResponse(res)
 }
 
-func decode(res *http.Response) GooglResponse {
+func Expand(shortUrl string) GooglResponse {
+  expandUrl := fmt.Sprintf(GooglExpandUrl, shortUrl)
+
+  res, err := http.Get(expandUrl)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  return DecodeResponse(res)
+}
+
+func DecodeResponse(res *http.Response) GooglResponse {
   var result GooglResponse
   decoder := json.NewDecoder(res.Body)
   err := decoder.Decode(&result)
