@@ -3,6 +3,7 @@ package gogl
 import "fmt"
 import "log"
 import "bytes"
+import "net/url"
 import "net/http"
 import "encoding/json"
 
@@ -36,7 +37,7 @@ func Shorten(longUrl string) GooglResponse {
 }
 
 func Expand(shortUrl string) GooglResponse {
-  expandUrl := fmt.Sprintf(GooglExpandUrl, shortUrl)
+  expandUrl := fmt.Sprintf(GooglExpandUrl, url.QueryEscape(shortUrl))
 
   res, err := http.Get(expandUrl)
   if err != nil {
