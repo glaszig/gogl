@@ -1,12 +1,12 @@
 package gogl
 
 import (
+  "bytes"
+  "encoding/json"
   "fmt"
   "log"
-  "bytes"
-  "net/url"
   "net/http"
-  "encoding/json"
+  "net/url"
 )
 
 const (
@@ -19,15 +19,19 @@ type ShortenRequest struct {
 }
 
 type GooglResponse struct {
-  Kind string
-  Id string
+  Kind    string
+  Id      string
   LongUrl string
-  Status string
+  Status  string
 }
 
-func Shorten(longUrl string) GooglResponse {
+func Shorten(longUrl string) (*GooglResponse, error) {
   jsonStruct := &ShortenRequest{LongUrl: longUrl}
   jsonBytes, err := json.Marshal(jsonStruct)
+
+  if err != nil {
+    return nil, err
+  }
 
   buf := bytes.NewBuffer(jsonBytes)
   res, err := http.Post(GooglShortenUrl, "application/json", buf)
@@ -38,7 +42,7 @@ func Shorten(longUrl string) GooglResponse {
   return DecodeResponse(res)
 }
 
-func Expand(shortUrl string) GooglResponse {
+func Expand(shortUrl string) (*GooglResponse, error) {
   expandUrl := fmt.Sprintf(GooglExpandUrl, url.QueryEscape(shortUrl))
 
   res, err := http.Get(expandUrl)
@@ -49,12 +53,12 @@ func Expand(shortUrl string) GooglResponse {
   return DecodeResponse(res)
 }
 
-func DecodeResponse(res *http.Response) GooglResponse {
-  var result GooglResponse
+func DecodeResponse(res *http.Response) (*GooglResponse, error) {
+  result := &GooglResponse{}
   decoder := json.NewDecoder(res.Body)
   err := decoder.Decode(&result)
   if err != nil {
-    log.Fatal(err)
+    return nil, err
   }
-  return result
+  return result, nil
 }
